@@ -95,7 +95,7 @@ public:
     }
 
     void out(ostream& o, const ParseState& ps) {
-        for (auto it=env.begin(); it!=env.end(); ++it) {
+        for (list<ParseCapture>::iterator it=env.begin(); it!=env.end(); ++it) {
             it->out(o, ps); o << "\n";
         }
     }
