@@ -433,7 +433,7 @@ Literal urlschemeterm("://");
 Literal osbrace('[');
 Literal csbrace(']');
 
-Or scheme(amqp, amqps);
+Or scheme(amqps, amqp);
 Or schemeterm(urlschemeterm, colon);
 And schemepart(scheme, schemeterm);
 Optional oschemepart(schemepart);
