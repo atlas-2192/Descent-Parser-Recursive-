@@ -4,7 +4,7 @@
 
 Any hexdigit("0123456789abcdefABCDEF");
 Any otherhostchars("_-.%~/");
-Or hostchars(alpha, digit, otherhostchars);
+Any hostchars(alpha, digit, otherhostchars);
 None idchars("/:@ \t\n");
 Any litip6chars("0123456789abcdefABCDEF.:");
 

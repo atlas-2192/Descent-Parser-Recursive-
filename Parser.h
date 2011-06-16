@@ -327,6 +327,18 @@ public:
         cs(cs_)
     {}
 
+    Any(const Any& a1, const Any& a2) :
+        cs(a1.cs+a2.cs)
+    {}
+
+    Any(const Any& a1, const Any& a2, const Any& a3) :
+        cs(a1.cs+a2.cs+a3.cs)
+    {}
+
+    Any(const Any& a1, const Any& a2, const Any& a3, const Any& a4) :
+        cs(a1.cs+a2.cs+a3.cs+a4.cs)
+    {}
+
     bool parse(ParseSource& in, ParseEnv&) const {
         bool r = cs.find(*in) != string::npos;
         ++in;
