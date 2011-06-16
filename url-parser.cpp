@@ -1,4 +1,4 @@
-// General parsing frmaework
+// General parsing framework
 
 #include <iostream>
 #include <string>
@@ -17,7 +17,7 @@ class Parser;
 
 class ParseState {
     const string input;
-    int pos;
+    unsigned pos;
 
 public:
     ParseState(const string& s) :
@@ -49,7 +49,7 @@ public:
         return pos >= input.size();
     }
 
-    int getPos() {
+    unsigned getPos() {
         return pos;
     }
     
@@ -67,9 +67,9 @@ protected:
 
 public:
     bool doParse(ParseState& in) const {
-        int s =in.getPos();
+        unsigned s =in.getPos();
         bool r = parse(in);
-        int e =in.getPos();
+        unsigned e =in.getPos();
         //cout << name() << "[" << in.substr(s, e) << "]->" << r << " ";
         return r;
     }
@@ -256,7 +256,7 @@ public:
 };
 
 class Any : public Parser {
-    string cs;
+    const string cs;
 
 public:
     Any(const string& cs_) :
@@ -276,7 +276,7 @@ public:
 };
 
 class None : public Parser {
-    string cs;
+    const string cs;
 
 public:
     None(const string& cs_) :
