@@ -42,6 +42,7 @@ public:
     }
 
     string substr(int i) const {
+        if (atEnd()) return "";
         return input.substr(pos, i);
     }
 
