@@ -25,7 +25,7 @@ public:
         pos(0)
     {}
     
-    char operator*() {
+    char operator*() const {
         return input[pos];
     }
 
@@ -37,11 +37,11 @@ public:
         pos += i;
     }
 
-    string substr(int i) {
+    string substr(int i) const {
         return input.substr(pos, i);
     }
 
-    string substr(int s, int e) {
+    string substr(int s, int e) const {
         return input.substr(s, e-s);
     }
 
@@ -49,7 +49,7 @@ public:
         return pos >= input.size();
     }
 
-    unsigned getPos() {
+    unsigned getPos() const {
         return pos;
     }
     
