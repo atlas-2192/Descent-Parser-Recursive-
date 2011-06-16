@@ -419,9 +419,10 @@ Any punct(".,!?:;'\"@&-/");
 Any ws(" \t\n");
 
 Any hexdigit("0123456789abcdefABCDEF");
-Any otherhostchars("_-.%~");
+Any otherhostchars("_-.%~/");
 Or hostchars(alpha, digit, otherhostchars);
 None idchars("/:@ \t\n");
+Any litip6chars("0123456789abcdefABCDEF.:");
 
 Literal amqp("amqp");
 Literal amqps("amqps");
@@ -434,6 +435,9 @@ Literal at('@');
 Literal slash('/');
 Literal colon(':');
 Literal urlschemeterm("://");
+Literal osbrace('[');
+Literal csbrace(']');
+
 Or scheme(amqp, amqps);
 Or schemeterm(urlschemeterm, colon);
 And schemepart(scheme, schemeterm);
@@ -447,13 +451,17 @@ And userpart(username, opasspart, at);
 Optional ouserpart(userpart);
 
 Or protocol(tcp, ssl, rdma, ib, unx);
-Repeat host(hostchars, 1);
+Repeat rehost(hostchars, 1);
+Repeat host6(litip6chars, 2);
+And ip6literal(osbrace, host6, csbrace);
+Or host(ip6literal, rehost);
 Repeat port(digit, 1, 5);
 
 And hostport(host, colon, port);
+And protocolhost(protocol, colon, host);
 And protocolhostport(protocol, colon, host, colon, port);
 
-Or endpoint(protocolhostport, hostport, host);
+Or endpoint(protocolhostport, hostport, protocolhost, host);
 
 And url(oschemepart, ouserpart, endpoint, end);
 
@@ -463,7 +471,8 @@ int main() {
     username.Capture("username");
     password.Capture("password");
     protocol.Capture("protocol");
-    host.Capture("host");
+    rehost.Capture("host");
+    host6.Capture("host");
     port.Capture("port");
 
     cout << boolalpha;
