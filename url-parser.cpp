@@ -425,13 +425,20 @@ None idchars("/:@ \t\n");
 
 Literal amqp("amqp");
 Literal amqps("amqps");
+Literal tcp("tcp");
+Literal ssl("ssl");
+Literal rdma("rdma");
+Literal ib("ib");
+Literal unx("unix");
+Literal at('@');
+Literal slash('/');
+Literal colon(':');
+Literal urlschemeterm("://");
 Or scheme(amqp, amqps);
-Literal schemeterm("://");
+Or schemeterm(urlschemeterm, colon);
 And schemepart(scheme, schemeterm);
 Optional oschemepart(schemepart);
 
-Literal at('@');
-Literal slash('/');
 Repeat username(idchars, 1);
 Repeat password(idchars, 1);
 And passpart(slash, password);
@@ -439,20 +446,23 @@ Optional opasspart(passpart);
 And userpart(username, opasspart, at);
 Optional ouserpart(userpart);
 
-Literal colon(':');
+Or protocol(tcp, ssl, rdma, ib, unx);
 Repeat host(hostchars, 1);
 Repeat port(digit, 1, 5);
-And portpart(colon, port);
-Optional oportpart(portpart);
-And hostpart(host, oportpart);
 
-And url(oschemepart, ouserpart, hostpart, end);
+And hostport(host, colon, port);
+And protocolhostport(protocol, colon, host, colon, port);
+
+Or endpoint(protocolhostport, hostport, host);
+
+And url(oschemepart, ouserpart, endpoint, end);
 
 int main() {
     // Set up captures
     scheme.Capture("scheme");
     username.Capture("username");
     password.Capture("password");
+    protocol.Capture("protocol");
     host.Capture("host");
     port.Capture("port");
 
