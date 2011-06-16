@@ -82,6 +82,10 @@ class ParseEnv {
     list<ParseCapture> env;
     
 public:
+    void clear() {
+        env.clear();
+    }
+
     void add(const ParseCapture& pc) {
         env.push_front(pc);
     }
@@ -266,18 +270,23 @@ public:
     
     bool parse(ParseState& in, ParseEnv& env) const {
         int pos = in.getPos();
-        // TODO: We're doing the wrong thing with env - fix it
-        if (p1.doParse(in, env)) return true;
+        ParseEnv e;
+        if (p1.doParse(in, e)) { env.add(e); return true; }
         in.setPos(pos);
-        if (p2.doParse(in, env)) return true;
+        e.clear();
+        if (p2.doParse(in, e)) { env.add(e); return true; }
         in.setPos(pos);
-        if (p3.doParse(in, env)) return true;
+        e.clear();
+        if (p3.doParse(in, e)) { env.add(e); return true; }
         in.setPos(pos);
-        if (p4.doParse(in, env)) return true;
+        e.clear();
+        if (p4.doParse(in, e)) { env.add(e); return true; }
         in.setPos(pos);
-        if (p5.doParse(in, env)) return true;
+        e.clear();
+        if (p5.doParse(in, e)) { env.add(e); return true; }
         in.setPos(pos);
-        if (p6.doParse(in, env)) return true;
+        e.clear();
+        if (p6.doParse(in, e)) { env.add(e); return true; }
         return false;
     }
 
@@ -297,8 +306,8 @@ public:
     
     bool parse(ParseState& in, ParseEnv& env) const {
         int pos = in.getPos();
-        // TODO: We're doing the wrong thing with env - fix it
-        if (p.doParse(in, env)) return true;
+        ParseEnv e;
+        if (p.doParse(in, e)) { env.add(e); return true; }
         in.setPos(pos);
         return true;
     }
@@ -364,15 +373,21 @@ public:
     bool parse(ParseState& in, ParseEnv& env) const {
         int pos = in.getPos();
         int count = 0;
+        ParseEnv re;
+        ParseEnv e;
         bool r;
-        // TODO: We're doing the wrong thing with env - fix it
-        while ((r=p.doParse(in, env)) && !in.atEnd()) {
+        while ( (r=p.doParse(in, e)) ) {
             ++count;
+            re.add(e); // adds e to re but also clears e
+            if (in.atEnd()) break;
             pos = in.getPos();
         }
         // Rewind to before the failed match (if there was one)
         if (!r) in.setPos(pos);
-        return count >= min && count <= max;
+
+        bool s = count >= min && count <= max;
+        if (s) env.add(re);
+        return s;
     }
 
     static const string id;
