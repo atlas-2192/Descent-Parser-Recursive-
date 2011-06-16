@@ -59,10 +59,16 @@ public:
 };
 
 class Parser {
+    bool capture;
+    string captureTag;
+
     virtual bool parse(ParseState& in) const = 0;
     virtual const string& name() const = 0;
 
 protected:
+    Parser() :
+        capture(false)
+    {}
     virtual ~Parser() {};
 
 public:
@@ -70,8 +76,15 @@ public:
         unsigned s =in.getPos();
         bool r = parse(in);
         unsigned e =in.getPos();
-        //cout << name() << "[" << in.substr(s, e) << "]->" << r << " ";
+        if (r && capture)
+            cout << captureTag << ": " << in.substr(s, e) << "\n";
         return r;
+    }
+    
+    Parser& Capture(const string& tag) {
+        capture = true;
+        captureTag = tag;
+        return *this;
     }
 };
 
@@ -378,6 +391,13 @@ And hostpart(host, oportpart);
 And url(oschemepart, ouserpart, hostpart, end);
 
 int main() {
+    // Set up captures
+    scheme.Capture("scheme");
+    username.Capture("username");
+    password.Capture("password");
+    host.Capture("host");
+    port.Capture("port");
+
     cout << boolalpha;
     string i;
     for (getline(cin, i); !!cin; getline(cin, i)) {
