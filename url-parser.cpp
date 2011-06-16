@@ -19,12 +19,12 @@ using std::list;
 
 class Parser;
 
-class ParseState {
+class ParseSource {
     const string input;
     unsigned pos;
 
 public:
-    ParseState(const string& s) :
+    ParseSource(const string& s) :
         input(s),
         pos(0)
     {}
@@ -56,7 +56,7 @@ public:
     unsigned getPos() const {
         return pos;
     }
-    
+
     void setPos(int p) {
         pos = p;
     }
@@ -73,7 +73,7 @@ struct ParseCapture {
         e(e_)
     {}
 
-    void out(ostream& o, const ParseState& ps) {
+    void out(ostream& o, const ParseSource& ps) {
         o << "[" << tag << ": " << ps.substr(s, e) << "]";
     }
 };
@@ -94,7 +94,7 @@ public:
         env.splice(env.begin(), pe.env);
     }
 
-    void out(ostream& o, const ParseState& ps) {
+    void out(ostream& o, const ParseSource& ps) {
         for (list<ParseCapture>::iterator it=env.begin(); it!=env.end(); ++it) {
             it->out(o, ps); o << "\n";
         }
@@ -105,7 +105,7 @@ class Parser {
     bool capture;
     string captureTag;
 
-    virtual bool parse(ParseState& in, ParseEnv& env) const = 0;
+    virtual bool parse(ParseSource& in, ParseEnv& env) const = 0;
     virtual const string& name() const = 0;
 
 protected:
@@ -115,7 +115,7 @@ protected:
     virtual ~Parser() {};
 
 public:
-    bool doParse(ParseState& in, ParseEnv& env) const {
+    bool doParse(ParseSource& in, ParseEnv& env) const {
         unsigned s =in.getPos();
         bool r = parse(in, env);
         unsigned e =in.getPos();
@@ -136,7 +136,7 @@ public:
     Null()
     {}
 
-    bool parse(ParseState&, ParseEnv&) const {
+    bool parse(ParseSource&, ParseEnv&) const {
       return true;
     }
 
@@ -151,7 +151,7 @@ public:
     Fail()
     {}
 
-    bool parse(ParseState&, ParseEnv&) const {
+    bool parse(ParseSource&, ParseEnv&) const {
       return false;
     }
 
@@ -166,7 +166,7 @@ public:
     End()
     {}
 
-    bool parse(ParseState& in, ParseEnv&) const {
+    bool parse(ParseSource& in, ParseEnv&) const {
       return in.atEnd();
     }
 
@@ -192,7 +192,7 @@ public:
         s(s_)
     {}
 
-    bool parse(ParseState& in, ParseEnv&) const {
+    bool parse(ParseSource& in, ParseEnv&) const {
       bool r = in.substr(s.size()) == s;
       in += s.size();
       return r;
@@ -228,7 +228,7 @@ public:
         p6(p6_)
     {}
 
-    bool parse(ParseState& in, ParseEnv& env) const {
+    bool parse(ParseSource& in, ParseEnv& env) const {
         return
             p1.doParse(in, env) &&
             p2.doParse(in, env) &&
@@ -268,7 +268,7 @@ public:
         p6(p6_)
     {}
 
-    bool parse(ParseState& in, ParseEnv& env) const {
+    bool parse(ParseSource& in, ParseEnv& env) const {
         int pos = in.getPos();
         ParseEnv e;
         if (p1.doParse(in, e)) { env.add(e); return true; }
@@ -304,7 +304,7 @@ public:
         p(p_)
     {}
 
-    bool parse(ParseState& in, ParseEnv& env) const {
+    bool parse(ParseSource& in, ParseEnv& env) const {
         int pos = in.getPos();
         ParseEnv e;
         if (p.doParse(in, e)) { env.add(e); return true; }
@@ -326,7 +326,7 @@ public:
         cs(cs_)
     {}
 
-    bool parse(ParseState& in, ParseEnv&) const {
+    bool parse(ParseSource& in, ParseEnv&) const {
         bool r = cs.find(*in) != string::npos;
         ++in;
         return r;
@@ -346,7 +346,7 @@ public:
         cs(cs_)
     {}
 
-    bool parse(ParseState& in, ParseEnv&) const {
+    bool parse(ParseSource& in, ParseEnv&) const {
         bool r = cs.find(*in) == string::npos;
         ++in;
         return r;
@@ -370,7 +370,7 @@ public:
         max(max_)
     {}
 
-    bool parse(ParseState& in, ParseEnv& env) const {
+    bool parse(ParseSource& in, ParseEnv& env) const {
         int pos = in.getPos();
         int count = 0;
         ParseEnv re;
@@ -459,7 +459,7 @@ int main() {
     cout << boolalpha;
     string i;
     for (getline(cin, i); !!cin; getline(cin, i)) {
-        ParseState ps(i);
+        ParseSource ps(i);
         ParseEnv env;
         cout << url.doParse(ps, env) << "\n";
         env.out(cout, ps);
