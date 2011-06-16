@@ -1,0 +1,62 @@
+false
+false
+false
+false
+true
+[endpoint: /]
+[host: /]
+[scheme: amqp]
+true
+[endpoint: andrew/]
+[host: andrew/]
+[scheme: amqps]
+false
+false
+true
+[endpoint: tcp]
+[host: tcp]
+[password: $%pwd]
+[username: blahname]
+false
+false
+true
+[endpoint: /tmp/socket]
+[host: /tmp/socket]
+true
+[endpoint: host:80]
+[port: 80]
+[host: host]
+true
+[endpoint: tcp:80]
+[port: 80]
+[host: tcp]
+true
+[endpoint: rdma:host:658]
+[port: 658]
+[host: host]
+[protocol: rdma]
+false
+true
+[endpoint: host2]
+[host: host2]
+[endpoint: host1]
+[host: host1]
+[username: user]
+[scheme: amqp]
+true
+[endpoint: rdma:home:8765]
+[port: 8765]
+[host: home]
+[protocol: rdma]
+[endpoint: ho45]
+[host: ho45]
+[endpoint: host1:846]
+[port: 846]
+[host: host1]
+true
+[endpoint: 676:80]
+[port: 80]
+[host: 676]
+[endpoint: 5675675]
+[host: 5675675]
+false
