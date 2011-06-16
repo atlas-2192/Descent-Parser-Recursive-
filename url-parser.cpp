@@ -310,12 +310,13 @@ public:
     bool parse(ParseState& in) const {
         int pos = in.getPos();
         int count = 0;
-        while (p.doParse(in) && !in.atEnd()) {
+        bool r;
+        while ((r=p.doParse(in)) && !in.atEnd()) {
             ++count;
             pos = in.getPos();
         }
         // Rewind to before the failed match (if there was one)
-        if (!in.atEnd()) in.setPos(pos);
+        if (!r) in.setPos(pos);
         return count >= min && count <= max;
     }
 
