@@ -428,6 +428,7 @@ Literal unx("unix");
 Literal at('@');
 Literal slash('/');
 Literal colon(':');
+Literal comma(",");
 Literal urlschemeterm("://");
 Literal osbrace('[');
 Literal csbrace(']');
@@ -456,8 +457,10 @@ And protocolhost(protocol, colon, host);
 And protocolhostport(protocol, colon, host, colon, port);
 
 Or endpoint(protocolhostport, hostport, protocolhost, host);
-
-And url(oschemepart, ouserpart, endpoint, end);
+And endpointlistel(comma, endpoint);
+Repeat endpointlist(endpointlistel, 0);
+And endpoints(endpoint, endpointlist);
+And url(oschemepart, ouserpart, endpoints, end);
 
 int main() {
     // Set up captures
@@ -468,6 +471,7 @@ int main() {
     rehost.Capture("host");
     host6.Capture("host");
     port.Capture("port");
+    endpoint.Capture("endpoint");
 
     cout << boolalpha;
     string i;
