@@ -28,7 +28,7 @@ public:
         input(s),
         pos(0)
     {}
-    
+
     char operator*() const {
         return input[pos];
     }
@@ -36,7 +36,7 @@ public:
     void operator++() {
         ++pos;
     }
-    
+
     void operator+=(int i) {
         pos += i;
     }
@@ -66,7 +66,7 @@ struct ParseCapture {
     const string tag; // Capture name
     unsigned s; // start position
     unsigned e; // end position
-    
+
     ParseCapture(const string& tag_, unsigned s_, unsigned e_) :
         tag(tag_),
         s(s_),
@@ -80,7 +80,7 @@ struct ParseCapture {
 
 class ParseEnv {
     list<ParseCapture> env;
-    
+
 public:
     void clear() {
         env.clear();
@@ -123,7 +123,7 @@ public:
             env.add(ParseCapture(captureTag, s, e));
         return r;
     }
-    
+
     Parser& Capture(const string& tag) {
         capture = true;
         captureTag = tag;
@@ -135,7 +135,7 @@ class Null : public Parser {
 public:
     Null()
     {}
-    
+
     bool parse(ParseState&, ParseEnv&) const {
       return true;
     }
@@ -150,7 +150,7 @@ class Fail : public Parser {
 public:
     Fail()
     {}
-    
+
     bool parse(ParseState&, ParseEnv&) const {
       return false;
     }
@@ -165,7 +165,7 @@ class End : public Parser {
 public:
     End()
     {}
-    
+
     bool parse(ParseState& in, ParseEnv&) const {
       return in.atEnd();
     }
@@ -187,11 +187,11 @@ public:
     Literal(char c) :
         s(1, c)
     {}
-    
+
     Literal(const string& s_) :
         s(s_)
     {}
-    
+
     bool parse(ParseState& in, ParseEnv&) const {
       bool r = in.substr(s.size()) == s;
       in += s.size();
@@ -227,7 +227,7 @@ public:
         p5(p5_),
         p6(p6_)
     {}
-    
+
     bool parse(ParseState& in, ParseEnv& env) const {
         return
             p1.doParse(in, env) &&
@@ -267,7 +267,7 @@ public:
         p5(p5_),
         p6(p6_)
     {}
-    
+
     bool parse(ParseState& in, ParseEnv& env) const {
         int pos = in.getPos();
         ParseEnv e;
@@ -303,7 +303,7 @@ public:
     Optional(const Parser& p_) :
         p(p_)
     {}
-    
+
     bool parse(ParseState& in, ParseEnv& env) const {
         int pos = in.getPos();
         ParseEnv e;
@@ -325,7 +325,7 @@ public:
     Any(const string& cs_) :
         cs(cs_)
     {}
-    
+
     bool parse(ParseState& in, ParseEnv&) const {
         bool r = cs.find(*in) != string::npos;
         ++in;
@@ -345,7 +345,7 @@ public:
     None(const string& cs_) :
         cs(cs_)
     {}
-    
+
     bool parse(ParseState& in, ParseEnv&) const {
         bool r = cs.find(*in) == string::npos;
         ++in;
@@ -463,5 +463,5 @@ int main() {
         ParseEnv env;
         cout << url.doParse(ps, env) << "\n";
         env.out(cout, ps);
-    }       
+    }
 }
