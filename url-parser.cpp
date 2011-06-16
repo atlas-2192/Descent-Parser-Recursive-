@@ -117,10 +117,15 @@ protected:
 public:
     bool doParse(ParseSource& in, ParseEnv& env) const {
         unsigned s =in.getPos();
-        bool r = parse(in, env);
+        ParseEnv en;
+        bool r = parse(in, en);
         unsigned e =in.getPos();
-        if (r && capture)
-            env.add(ParseCapture(captureTag, s, e));
+        if (r) {
+            // Only add the parsed environment if parse succeeded
+            env.add(en);
+            if (capture)
+                env.add(ParseCapture(captureTag, s, e));
+        }
         return r;
     }
 
@@ -270,23 +275,17 @@ public:
 
     bool parse(ParseSource& in, ParseEnv& env) const {
         int pos = in.getPos();
-        ParseEnv e;
-        if (p1.doParse(in, e)) { env.add(e); return true; }
+        if (p1.doParse(in, env)) return true;
         in.setPos(pos);
-        e.clear();
-        if (p2.doParse(in, e)) { env.add(e); return true; }
+        if (p2.doParse(in, env)) return true;
         in.setPos(pos);
-        e.clear();
-        if (p3.doParse(in, e)) { env.add(e); return true; }
+        if (p3.doParse(in, env)) return true;
         in.setPos(pos);
-        e.clear();
-        if (p4.doParse(in, e)) { env.add(e); return true; }
+        if (p4.doParse(in, env)) return true;
         in.setPos(pos);
-        e.clear();
-        if (p5.doParse(in, e)) { env.add(e); return true; }
+        if (p5.doParse(in, env)) return true;
         in.setPos(pos);
-        e.clear();
-        if (p6.doParse(in, e)) { env.add(e); return true; }
+        if (p6.doParse(in, env)) return true;
         return false;
     }
 
@@ -306,8 +305,7 @@ public:
 
     bool parse(ParseSource& in, ParseEnv& env) const {
         int pos = in.getPos();
-        ParseEnv e;
-        if (p.doParse(in, e)) { env.add(e); return true; }
+        if (p.doParse(in, env)) return true;
         in.setPos(pos);
         return true;
     }
@@ -373,12 +371,9 @@ public:
     bool parse(ParseSource& in, ParseEnv& env) const {
         int pos = in.getPos();
         int count = 0;
-        ParseEnv re;
-        ParseEnv e;
         bool r;
-        while ( (r=p.doParse(in, e)) ) {
+        while ( (r=p.doParse(in, env)) ) {
             ++count;
-            re.add(e); // adds e to re but also clears e
             if (in.atEnd()) break;
             pos = in.getPos();
         }
@@ -386,7 +381,6 @@ public:
         if (!r) in.setPos(pos);
 
         bool s = count >= min && count <= max;
-        if (s) env.add(re);
         return s;
     }
 
