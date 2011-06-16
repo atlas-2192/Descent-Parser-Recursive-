@@ -3,15 +3,19 @@
 #include <iostream>
 #include <string>
 #include <limits>
+#include <list>
 
 using std::cin;
 using std::cout;
 using std::getline;
 using std::boolalpha;
+using std::ostream;
 
 using std::string;
 
 using std::numeric_limits;
+
+using std::list;
 
 class Parser;
 
@@ -58,11 +62,46 @@ public:
     }
 };
 
+struct ParseCapture {
+    const string tag; // Capture name
+    unsigned s; // start position
+    unsigned e; // end position
+    
+    ParseCapture(const string& tag_, unsigned s_, unsigned e_) :
+        tag(tag_),
+        s(s_),
+        e(e_)
+    {}
+
+    void out(ostream& o, const ParseState& ps) {
+        o << "[" << tag << ": " << ps.substr(s, e) << "]";
+    }
+};
+
+class ParseEnv {
+    list<ParseCapture> env;
+    
+public:
+    void add(const ParseCapture& pc) {
+        env.push_front(pc);
+    }
+
+    void add(ParseEnv& pe) {
+        env.splice(env.begin(), pe.env);
+    }
+
+    void out(ostream& o, const ParseState& ps) {
+        for (auto it=env.begin(); it!=env.end(); ++it) {
+            it->out(o, ps); o << "\n";
+        }
+    }
+};
+
 class Parser {
     bool capture;
     string captureTag;
 
-    virtual bool parse(ParseState& in) const = 0;
+    virtual bool parse(ParseState& in, ParseEnv& env) const = 0;
     virtual const string& name() const = 0;
 
 protected:
@@ -72,12 +111,12 @@ protected:
     virtual ~Parser() {};
 
 public:
-    bool doParse(ParseState& in) const {
+    bool doParse(ParseState& in, ParseEnv& env) const {
         unsigned s =in.getPos();
-        bool r = parse(in);
+        bool r = parse(in, env);
         unsigned e =in.getPos();
         if (r && capture)
-            cout << captureTag << ": " << in.substr(s, e) << "\n";
+            env.add(ParseCapture(captureTag, s, e));
         return r;
     }
     
@@ -93,7 +132,7 @@ public:
     Null()
     {}
     
-    bool parse(ParseState&) const {
+    bool parse(ParseState&, ParseEnv&) const {
       return true;
     }
 
@@ -108,7 +147,7 @@ public:
     Fail()
     {}
     
-    bool parse(ParseState&) const {
+    bool parse(ParseState&, ParseEnv&) const {
       return false;
     }
 
@@ -123,7 +162,7 @@ public:
     End()
     {}
     
-    bool parse(ParseState& in) const {
+    bool parse(ParseState& in, ParseEnv&) const {
       return in.atEnd();
     }
 
@@ -149,7 +188,7 @@ public:
         s(s_)
     {}
     
-    bool parse(ParseState& in) const {
+    bool parse(ParseState& in, ParseEnv&) const {
       bool r = in.substr(s.size()) == s;
       in += s.size();
       return r;
@@ -185,14 +224,14 @@ public:
         p6(p6_)
     {}
     
-    bool parse(ParseState& in) const {
+    bool parse(ParseState& in, ParseEnv& env) const {
         return
-            p1.doParse(in) &&
-            p2.doParse(in) &&
-            p3.doParse(in) &&
-            p4.doParse(in) &&
-            p5.doParse(in) &&
-            p6.doParse(in);
+            p1.doParse(in, env) &&
+            p2.doParse(in, env) &&
+            p3.doParse(in, env) &&
+            p4.doParse(in, env) &&
+            p5.doParse(in, env) &&
+            p6.doParse(in, env);
     }
 
     static const string id;
@@ -225,19 +264,20 @@ public:
         p6(p6_)
     {}
     
-    bool parse(ParseState& in) const {
+    bool parse(ParseState& in, ParseEnv& env) const {
         int pos = in.getPos();
-        if (p1.doParse(in)) return true;
+        // TODO: We're doing the wrong thing with env - fix it
+        if (p1.doParse(in, env)) return true;
         in.setPos(pos);
-        if (p2.doParse(in)) return true;
+        if (p2.doParse(in, env)) return true;
         in.setPos(pos);
-        if (p3.doParse(in)) return true;
+        if (p3.doParse(in, env)) return true;
         in.setPos(pos);
-        if (p4.doParse(in)) return true;
+        if (p4.doParse(in, env)) return true;
         in.setPos(pos);
-        if (p5.doParse(in)) return true;
+        if (p5.doParse(in, env)) return true;
         in.setPos(pos);
-        if (p6.doParse(in)) return true;
+        if (p6.doParse(in, env)) return true;
         return false;
     }
 
@@ -255,9 +295,10 @@ public:
         p(p_)
     {}
     
-    bool parse(ParseState& in) const {
+    bool parse(ParseState& in, ParseEnv& env) const {
         int pos = in.getPos();
-        if (p.doParse(in)) return true;
+        // TODO: We're doing the wrong thing with env - fix it
+        if (p.doParse(in, env)) return true;
         in.setPos(pos);
         return true;
     }
@@ -276,7 +317,7 @@ public:
         cs(cs_)
     {}
     
-    bool parse(ParseState& in) const {
+    bool parse(ParseState& in, ParseEnv&) const {
         bool r = cs.find(*in) != string::npos;
         ++in;
         return r;
@@ -296,7 +337,7 @@ public:
         cs(cs_)
     {}
     
-    bool parse(ParseState& in) const {
+    bool parse(ParseState& in, ParseEnv&) const {
         bool r = cs.find(*in) == string::npos;
         ++in;
         return r;
@@ -320,11 +361,12 @@ public:
         max(max_)
     {}
 
-    bool parse(ParseState& in) const {
+    bool parse(ParseState& in, ParseEnv& env) const {
         int pos = in.getPos();
         int count = 0;
         bool r;
-        while ((r=p.doParse(in)) && !in.atEnd()) {
+        // TODO: We're doing the wrong thing with env - fix it
+        while ((r=p.doParse(in, env)) && !in.atEnd()) {
             ++count;
             pos = in.getPos();
         }
@@ -349,6 +391,7 @@ const string Optional::id("Optional");
 const string Any::id("Any");
 const string None::id("None");
 const string Repeat::id("Repeat");
+
 
 ///////////////////////////////////////////////
 // Test Code
@@ -402,6 +445,8 @@ int main() {
     string i;
     for (getline(cin, i); !!cin; getline(cin, i)) {
         ParseState ps(i);
-        cout << url.doParse(ps) << "\n";
+        ParseEnv env;
+        cout << url.doParse(ps, env) << "\n";
+        env.out(cout, ps);
     }       
 }
