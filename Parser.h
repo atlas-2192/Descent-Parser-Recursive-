@@ -43,9 +43,9 @@ public:
         pos += i;
     }
 
-    string substr(int i) const {
-        if (atEnd()) return "";
-        return input.substr(pos, i);
+    bool match(const string& s) const {
+        if (atEnd()) return false;
+        return input.compare(pos, s.size(), s)==0;
     }
 
     string substr(int s, int e) const {
@@ -201,7 +201,7 @@ public:
     {}
 
     bool parse(ParseSource& in, ParseEnv&) const {
-      bool r = in.substr(s.size()) == s;
+      bool r = in.match(s);
       in += s.size();
       return r;
     }
