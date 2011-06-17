@@ -87,8 +87,12 @@ public:
         return env.empty();
     }
 
-    void add(const ParseCapture& pc) {
-        env.push_front(pc);
+    void add(const string& tag, unsigned s, unsigned e) {
+        env.push_front(ParseCapture(tag, s, e));
+    }
+
+    void add(const string& tag, unsigned s, unsigned e, ParseEnv& en) {
+        env.push_front(ParseCapture(tag, s, e, en));
     }
 
     void add(ParseEnv& pe) {
@@ -154,9 +158,9 @@ public:
             // Only add the parsed environment if parse succeeded
             if (capture) {
                 if (en.empty()) {
-                    env.add(ParseCapture(captureTag, s, e));
+                    env.add(captureTag, s, e);
                 } else {
-                    env.add(ParseCapture(captureTag, s, e, en));
+                    env.add(captureTag, s, e, en);
                 }
             } else {
                 env.add(en);
