@@ -65,28 +65,26 @@ public:
     }
 };
 
-struct ParseCapture {
+class ParseEnv;
+
+class ParseCapture {
     const string tag; // Capture name
     unsigned s; // start position
     unsigned e; // end position
+    ParseEnv* subEnv;
 
-    ParseCapture(const string& tag_, unsigned s_, unsigned e_) :
-        tag(tag_),
-        s(s_),
-        e(e_)
-    {}
-
-    void out(ostream& o, const ParseSource& ps) {
-        o << "[" << tag << ": " << ps.substr(s, e) << "]";
-    }
+public:
+    ParseCapture(const string& tag_, unsigned s_, unsigned e_);
+    ParseCapture(const string& tag_, unsigned s_, unsigned e_, ParseEnv& env_);
+    void out(ostream& o, const ParseSource& ps, int indent = 0);
 };
 
 class ParseEnv {
     list<ParseCapture> env;
 
 public:
-    void clear() {
-        env.clear();
+    bool empty() {
+        return env.empty();
     }
 
     void add(const ParseCapture& pc) {
@@ -97,12 +95,41 @@ public:
         env.splice(env.begin(), pe.env);
     }
 
-    void out(ostream& o, const ParseSource& ps) {
+    void out(ostream& o, const ParseSource& ps, int indent = 0) {
         for (list<ParseCapture>::iterator it=env.begin(); it!=env.end(); ++it) {
-            it->out(o, ps); o << "\n";
+            it->out(o, ps, indent); o << "\n";
         }
     }
 };
+
+ParseCapture::ParseCapture(const string& tag_, unsigned s_, unsigned e_) :
+    tag(tag_),
+    s(s_),
+    e(e_),
+    subEnv(0)
+{}
+
+ParseCapture::ParseCapture(const string& tag_, unsigned s_, unsigned e_, ParseEnv& env_) :
+    tag(tag_),
+    s(s_),
+    e(e_),
+    subEnv(new ParseEnv)    
+{
+    subEnv->add(env_);
+}
+
+void ParseCapture::out(ostream& o, const ParseSource& ps, int indent) {
+    o
+        << string(indent, ' ') << "[" << tag << ": " 
+        << ps.substr(s, e) << "(" << s << "," << e << ")";
+    if (subEnv) {
+        o << "\n";
+        subEnv->out(o, ps, indent+1);
+        o << string(indent, ' ') << "]";
+    } else {
+        o << "]";
+    }
+}
 
 class Parser {
     bool capture;
@@ -125,9 +152,15 @@ public:
         unsigned e =in.getPos();
         if (r) {
             // Only add the parsed environment if parse succeeded
-            env.add(en);
-            if (capture)
-                env.add(ParseCapture(captureTag, s, e));
+            if (capture) {
+                if (en.empty()) {
+                    env.add(ParseCapture(captureTag, s, e));
+                } else {
+                    env.add(ParseCapture(captureTag, s, e, en));
+                }
+            } else {
+                env.add(en);
+            }
         }
         return r;
     }
