@@ -71,11 +71,11 @@ class ParseCapture {
     const string tag; // Capture name
     unsigned s; // start position
     unsigned e; // end position
-    ParseEnv* subEnv;
+    list<ParseCapture> subEnv;
 
 public:
     ParseCapture(const string& tag_, unsigned s_, unsigned e_);
-    ParseCapture(const string& tag_, unsigned s_, unsigned e_, ParseEnv& env_);
+    ParseCapture(const string& tag_, unsigned s_, unsigned e_, list<ParseCapture>& env_);
     void out(ostream& o, const ParseSource& ps, int indent = 0);
 };
 
@@ -92,7 +92,7 @@ public:
     }
 
     void add(const string& tag, unsigned s, unsigned e, ParseEnv& en) {
-        env.push_front(ParseCapture(tag, s, e, en));
+        env.push_front(ParseCapture(tag, s, e, en.env));
     }
 
     void add(ParseEnv& pe) {
@@ -109,26 +109,26 @@ public:
 ParseCapture::ParseCapture(const string& tag_, unsigned s_, unsigned e_) :
     tag(tag_),
     s(s_),
-    e(e_),
-    subEnv(0)
+    e(e_)
 {}
 
-ParseCapture::ParseCapture(const string& tag_, unsigned s_, unsigned e_, ParseEnv& env_) :
+ParseCapture::ParseCapture(const string& tag_, unsigned s_, unsigned e_, list<ParseCapture>& env_) :
     tag(tag_),
     s(s_),
-    e(e_),
-    subEnv(new ParseEnv)    
+    e(e_)
 {
-    subEnv->add(env_);
+    subEnv.swap(env_);
 }
 
 void ParseCapture::out(ostream& o, const ParseSource& ps, int indent) {
     o
         << string(indent, ' ') << "[" << tag << ": " 
         << ps.substr(s, e) << "(" << s << "," << e << ")";
-    if (subEnv) {
+    if (!subEnv.empty()) {
         o << "\n";
-        subEnv->out(o, ps, indent+1);
+        for (list<ParseCapture>::iterator it=subEnv.begin(); it!=subEnv.end(); ++it) {
+            it->out(o, ps, indent+1); o << "\n";
+        }
         o << string(indent, ' ') << "]";
     } else {
         o << "]";

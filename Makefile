@@ -1,4 +1,4 @@
-CXXFLAGS=-g -Os -Wall -Werror
+CXXFLAGS=-g -O0 -Wall -Werror
 
 all: url-parser
 
