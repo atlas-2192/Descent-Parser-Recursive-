@@ -3,6 +3,7 @@
 using std::ostream;
 using std::list;
 using std::string;
+using std::numeric_limits;
 
 void ParseEnv::out(ostream& o, const ParseSource& ps, int indent) {
 	for (list<ParseCapture>::iterator it=env.begin(); it!=env.end(); ++it) {
@@ -23,6 +24,10 @@ void ParseCapture::out(ostream& o, const ParseSource& ps, int indent) {
     } else {
         o << "]";
     }
+}
+
+void Parser::doPrint(ostream& o) const {
+	print(o);
 }
 
 bool Parser::doParse(ParseSource& in, ParseEnv& env) const {
@@ -135,6 +140,97 @@ bool Repeat::parse(ParseSource& in, ParseEnv& env) const {
     return s;
 }
 
+void Null::print(ostream& o) const {
+}
+
+void Fail::print(ostream& o) const {
+}
+
+void End::print(ostream& o) const {
+	o << "$";
+}
+
+void Literal::print(ostream& o) const {
+	o << "\"" << s << "\"";
+}
+
+void And::print(ostream& o) const {
+	p1.doPrint(o);
+	o << " ";
+	p2.doPrint(o);
+	if (&p3 != &null) {
+		o << " ";
+	    p3.doPrint(o);
+	}
+	if (&p4 != &null) {
+		o << " ";
+	    p4.doPrint(o);
+	}
+	if (&p5 != &null) {
+	    o << " ";
+	    p5.doPrint(o);
+	}
+	if (&p6 != &null) {
+	    o << " ";
+	    p6.doPrint(o);
+	}
+}
+
+void Or::print(ostream& o) const {
+	o << "(";
+	p1.doPrint(o);
+	o << "|";
+	p2.doPrint(o);
+	if (&p3 != &fail) {
+	    o << "|";
+	    p3.doPrint(o);
+	}
+	if (&p4 != &fail) {
+	    o << "|";
+	    p4.doPrint(o);
+	}
+	if (&p5 != &fail) {
+	    o << "|";
+	    p5.doPrint(o);
+	}
+	if (&p6 != &fail) {
+	    o << "|";
+	    p6.doPrint(o);
+	}
+	o << ")";
+}
+
+void Optional::print(ostream& o) const {
+	o << "(";
+	p.doPrint(o);
+	o << ")?";
+}
+
+void Any::print(ostream& o) const {
+	if (cs[0] != '^')
+		o << "[" << cs << "]";
+	else
+		o << "[\\" << cs << "]";
+
+}
+
+void None::print(ostream& o) const {
+	o << "[^" << cs << "]";
+}
+
+void Repeat::print(ostream& o) const {
+	p.doPrint(o);
+	if (max == numeric_limits<int>::max()) {
+		switch (min) {
+		case 0: o << "*"; break;
+		case 1: o << "+"; break;
+		default: o << "{" << min << ",}";
+		}
+	} else {
+		o << "{" << min << "," << max << "}";
+	}
+}
+
 // Useful character classes
 
 Any alpha("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -145,7 +241,11 @@ Any ws(" \t\n");
 
 // Singleton parsers
 
-Null null;
-Fail fail;
-End end;
+Null null0;
+Fail fail0;
+End end0;
+
+Parser& null = null0;
+Parser& fail = fail0;
+Parser& end = end0;
 

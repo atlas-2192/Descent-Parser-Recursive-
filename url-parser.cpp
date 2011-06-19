@@ -71,6 +71,9 @@ int main() {
     port.Capture("port");
     endpoint.Capture("endpoint");
 
+    cout << "Parse: ";
+    url.doPrint(cout);
+    cout << "\n";
     cout << boolalpha;
     string i;
     bool r;

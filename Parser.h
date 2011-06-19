@@ -52,13 +52,15 @@ class Parser {
     bool capture;
 
     virtual bool parse(ParseSource& in, ParseEnv& env) const = 0;
+    virtual void print(std::ostream& o) const = 0;
 
 protected:
     Parser(const std::string& id_);
     virtual ~Parser();
 
 public:
-    const std::string& name();
+    const std::string& type();
+    void doPrint(std::ostream& o) const;
     bool doParse(ParseSource& in, ParseEnv& env) const;
     Parser& Capture(const std::string& tag);
 };
@@ -139,7 +141,7 @@ inline Parser::Parser(const std::string& id_) :
 inline Parser::~Parser(){
 }
 
-inline const std::string& Parser::name() {
+inline const std::string& Parser::type() {
 	return id;
 }
 
@@ -156,6 +158,7 @@ public:
     	Parser(id)
     {}
 
+    void print(std::ostream& o) const;
     bool parse(ParseSource& in, ParseEnv& env) const;
 };
 
@@ -166,6 +169,7 @@ public:
     	Parser(id)
     {}
 
+    void print(std::ostream& o) const;
     bool parse(ParseSource& in, ParseEnv& env) const;
 };
 
@@ -176,14 +180,15 @@ public:
     	Parser(id)
     {}
 
+    void print(std::ostream& o) const;
     bool parse(ParseSource& in, ParseEnv& env) const;
 };
 
 // Only ever need one of these
 
-extern Null null;
-extern Fail fail;
-extern End end;
+extern Parser& null;
+extern Parser& fail;
+extern Parser& end;
 
 class Literal : public Parser {
     static const std::string id;
@@ -201,6 +206,7 @@ public:
         s(s_)
     {}
 
+    void print(std::ostream& o) const;
     bool parse(ParseSource& in, ParseEnv& env) const;
 };
 
@@ -231,6 +237,7 @@ public:
         p6(p6_)
     {}
 
+    void print(std::ostream& o) const;
     bool parse(ParseSource& in, ParseEnv& env) const;
 };
 
@@ -261,6 +268,7 @@ public:
         p6(p6_)
     {}
 
+    void print(std::ostream& o) const;
     bool parse(ParseSource& in, ParseEnv& env) const;
 };
 
@@ -275,6 +283,7 @@ public:
         p(p_)
     {}
 
+    void print(std::ostream& o) const;
     bool parse(ParseSource& in, ParseEnv& env) const;
 };
 
@@ -304,6 +313,7 @@ public:
         cs(a1.cs+a2.cs+a3.cs+a4.cs)
     {}
 
+    void print(std::ostream& o) const;
     bool parse(ParseSource& in, ParseEnv& env) const;
 };
 
@@ -318,6 +328,7 @@ public:
         cs(cs_)
     {}
 
+    void print(std::ostream& o) const;
     bool parse(ParseSource& in, ParseEnv& env) const;
 };
 
@@ -336,6 +347,7 @@ public:
         max(max_)
     {}
 
+    void print(std::ostream& o) const;
     bool parse(ParseSource& in, ParseEnv& env) const;
 };
 
