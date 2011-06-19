@@ -28,18 +28,22 @@ void ParseCapture::out(ostream& o, const ParseSource& ps, int indent) {
 }
 
 void Parser::doPrint(ostream& o) const {
+    set<Parser const*> printed;
     set<Parser const*> toParse;
+    printed.insert(this);
     o << name << "::=";
     print(o, toParse);
     o << "\n";
     while (!toParse.empty()) {
-        set<Parser const*> temp;
+        set<Parser const*> leftover;
         for (set<Parser const*>::iterator i = toParse.begin(); i!=toParse.end(); ++i) {
-            o << (*i)->name << "::=";
-            (*i)->print(o, temp);
-            o << "\n";
+            if (printed.insert(*i).second) {
+                o << (*i)->name << "::=";
+                (*i)->print(o, leftover);
+                o << "\n";
+            }
         }
-        toParse.swap(temp);
+        toParse.swap(leftover);
     }
 }
 
