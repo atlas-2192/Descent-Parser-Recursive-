@@ -47,17 +47,18 @@ public:
 };
 
 class Parser {
-    bool capture;
+    const std::string& id;
     std::string captureTag;
+    bool capture;
 
     virtual bool parse(ParseSource& in, ParseEnv& env) const = 0;
-    virtual const std::string& name() const = 0;
 
 protected:
-    Parser();
+    Parser(const std::string& id_);
     virtual ~Parser();
 
 public:
+    const std::string& name();
     bool doParse(ParseSource& in, ParseEnv& env) const;
     Parser& Capture(const std::string& tag);
 };
@@ -130,11 +131,16 @@ inline ParseCapture::ParseCapture(const std::string& tag_, unsigned s_, unsigned
     subEnv.swap(env_);
 }
 
-inline Parser::Parser() :
+inline Parser::Parser(const std::string& id_) :
+	id(id_),
     capture(false) {
 }
 
 inline Parser::~Parser(){
+}
+
+inline const std::string& Parser::name() {
+	return id;
 }
 
 inline Parser& Parser::Capture(const std::string& tag) {
@@ -146,37 +152,31 @@ inline Parser& Parser::Capture(const std::string& tag) {
 class Null : public Parser {
     static const std::string id;
 public:
-    Null()
+    Null() :
+    	Parser(id)
     {}
 
     bool parse(ParseSource& in, ParseEnv& env) const;
-    const std::string& name() const {
-        return id;
-    }
 };
 
 class Fail : public Parser {
     static const std::string id;
 public:
-    Fail()
+    Fail() :
+    	Parser(id)
     {}
 
     bool parse(ParseSource& in, ParseEnv& env) const;
-    const std::string& name() const {
-        return id;
-    }
 };
 
 class End : public Parser {
     static const std::string id;
 public:
-    End()
+    End() :
+    	Parser(id)
     {}
 
     bool parse(ParseSource& in, ParseEnv& env) const;
-    const std::string& name() const {
-        return id;
-    }
 };
 
 // Only ever need one of these
@@ -192,17 +192,16 @@ class Literal : public Parser {
 
 public:
     Literal(char c) :
+        Parser(id),
         s(1, c)
     {}
 
     Literal(const std::string& s_) :
+        Parser(id),
         s(s_)
     {}
 
     bool parse(ParseSource& in, ParseEnv& env) const;
-    const std::string& name() const {
-        return id;
-    }
 };
 
 class And : public Parser {
@@ -223,6 +222,7 @@ public:
         const Parser& p5_=null,
         const Parser& p6_=null
        ) :
+        Parser(id),
         p1(p1_),
         p2(p2_),
         p3(p3_),
@@ -232,9 +232,6 @@ public:
     {}
 
     bool parse(ParseSource& in, ParseEnv& env) const;
-    const std::string& name() const {
-        return id;
-    }
 };
 
 class Or : public Parser {
@@ -255,6 +252,7 @@ public:
        const Parser& p5_=fail,
        const Parser& p6_=fail
       ) :
+        Parser(id),
         p1(p1_),
         p2(p2_),
         p3(p3_),
@@ -264,9 +262,6 @@ public:
     {}
 
     bool parse(ParseSource& in, ParseEnv& env) const;
-    const std::string& name() const {
-        return id;
-    }
 };
 
 class Optional : public Parser {
@@ -276,13 +271,11 @@ class Optional : public Parser {
 
 public:
     Optional(const Parser& p_) :
+        Parser(id),
         p(p_)
     {}
 
     bool parse(ParseSource& in, ParseEnv& env) const;
-    const std::string& name() const {
-        return id;
-    }
 };
 
 class Any : public Parser {
@@ -292,25 +285,26 @@ class Any : public Parser {
 
 public:
     Any(const std::string& cs_) :
+        Parser(id),
         cs(cs_)
     {}
 
     Any(const Any& a1, const Any& a2) :
+        Parser(id),
         cs(a1.cs+a2.cs)
     {}
 
     Any(const Any& a1, const Any& a2, const Any& a3) :
+        Parser(id),
         cs(a1.cs+a2.cs+a3.cs)
     {}
 
     Any(const Any& a1, const Any& a2, const Any& a3, const Any& a4) :
+        Parser(id),
         cs(a1.cs+a2.cs+a3.cs+a4.cs)
     {}
 
     bool parse(ParseSource& in, ParseEnv& env) const;
-    const std::string& name() const {
-        return id;
-    }
 };
 
 class None : public Parser {
@@ -320,13 +314,11 @@ class None : public Parser {
 
 public:
     None(const std::string& cs_) :
+        Parser(id),
         cs(cs_)
     {}
 
     bool parse(ParseSource& in, ParseEnv& env) const;
-    const std::string& name() const {
-        return id;
-    }
 };
 
 class Repeat : public Parser {
@@ -338,15 +330,13 @@ class Repeat : public Parser {
 
 public:
     Repeat(const Parser& p_, int min_, int max_ = std::numeric_limits<int>::max()) :
+        Parser(id),
         p(p_),
         min(min_),
         max(max_)
     {}
 
     bool parse(ParseSource& in, ParseEnv& env) const;
-    const std::string& name() const {
-        return id;
-    }
 };
 
 // Useful character classes
