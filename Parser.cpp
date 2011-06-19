@@ -27,7 +27,8 @@ void ParseCapture::out(ostream& o, const ParseSource& ps, int indent) {
 }
 
 void Parser::doPrint(ostream& o) const {
-	print(o);
+	if (!name.empty()) o << name;
+	else print(o);
 }
 
 bool Parser::doParse(ParseSource& in, ParseEnv& env) const {

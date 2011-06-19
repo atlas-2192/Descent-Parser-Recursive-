@@ -62,13 +62,13 @@ And url(oschemepart, ouserpart, endpoints, end);
 
 int main() {
     // Set up captures
-    scheme.Capture("scheme");
-    username.Capture("username");
-    password.Capture("password");
-    protocol.Capture("protocol");
-    rehost.Capture("host");
-    host6.Capture("host");
-    port.Capture("port");
+    scheme.Capture("scheme").Name("scheme");
+    username.Capture("username").Name("username");
+    password.Capture("password").Name("password");
+    protocol.Capture("protocol").Name("protocol");
+    rehost.Capture("host").Name("host");
+    host6.Capture("host").Name("host");
+    port.Capture("port").Name("port");
     endpoint.Capture("endpoint");
 
     cout << "Parse: ";

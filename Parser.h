@@ -48,6 +48,7 @@ public:
 
 class Parser {
     const std::string& id;
+    std::string name;
     std::string captureTag;
     bool capture;
 
@@ -63,6 +64,7 @@ public:
     void doPrint(std::ostream& o) const;
     bool doParse(ParseSource& in, ParseEnv& env) const;
     Parser& Capture(const std::string& tag);
+    Parser& Name(const std::string& name);
 };
 
 inline ParseSource::ParseSource(const std::string& s) :
@@ -148,6 +150,11 @@ inline const std::string& Parser::type() {
 inline Parser& Parser::Capture(const std::string& tag) {
     capture = true;
     captureTag = tag;
+    return *this;
+}
+
+inline Parser& Parser::Name(const std::string& name) {
+    this->name = name;
     return *this;
 }
 
