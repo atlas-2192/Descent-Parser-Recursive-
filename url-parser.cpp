@@ -2,6 +2,14 @@
 
 #include "Parser.h"
 
+#include <iostream>
+
+using std::cout;
+using std::cin;
+using std::boolalpha;
+
+using std::string;
+
 Any hexdigit("0123456789abcdefABCDEF");
 Any otherhostchars("_-.%~/");
 Any hostchars(alpha, digit, otherhostchars);
@@ -65,10 +73,13 @@ int main() {
 
     cout << boolalpha;
     string i;
+    bool r;
     for (getline(cin, i); !!cin; getline(cin, i)) {
         ParseSource ps(i);
         ParseEnv env;
-        cout << url.doParse(ps, env) << "\n";
+        r = url.doParse(ps, env);
+        cout << r << "\n";
         env.out(cout, ps);
     }
+    return !r;
 }

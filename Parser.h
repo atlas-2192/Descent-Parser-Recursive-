@@ -2,117 +2,127 @@
 #ifndef Parser_h
 #define Parser_h
 
-#include <iostream>
+#include <ostream>
 #include <string>
 #include <limits>
 #include <list>
 
-using std::cin;
-using std::cout;
-using std::getline;
-using std::boolalpha;
-using std::ostream;
-
-using std::string;
-
-using std::numeric_limits;
-
-using std::list;
-
-class Parser;
-
 class ParseSource {
-    const string input;
+    const std::string input;
     unsigned pos;
 
 public:
-    ParseSource(const string& s) :
-        input(s),
-        pos(0)
-    {}
-
-    char operator*() const {
-        return input[pos];
-    }
-
-    void operator++() {
-        ++pos;
-    }
-
-    void operator+=(int i) {
-        pos += i;
-    }
-
-    bool match(const string& s) const {
-        if (atEnd()) return false;
-        return input.compare(pos, s.size(), s)==0;
-    }
-
-    string substr(int s, int e) const {
-        return input.substr(s, e-s);
-    }
-
-    bool atEnd() const {
-        return pos >= input.size();
-    }
-
-    unsigned getPos() const {
-        return pos;
-    }
-
-    void setPos(int p) {
-        pos = p;
-    }
+    ParseSource(const std::string& s);
+    char operator*() const;
+    void operator++();
+    void operator+=(int i);
+    bool match(const std::string& s) const;
+    std::string substr(int s, int e) const;
+    bool atEnd() const;
+    unsigned getPos() const;
+    void setPos(int p);
 };
 
-class ParseEnv;
-
 class ParseCapture {
-    const string tag; // Capture name
+    const std::string tag; // Capture name
     unsigned s; // start position
     unsigned e; // end position
-    list<ParseCapture> subEnv;
+    std::list<ParseCapture> subEnv;
 
 public:
-    ParseCapture(const string& tag_, unsigned s_, unsigned e_);
-    ParseCapture(const string& tag_, unsigned s_, unsigned e_, list<ParseCapture>& env_);
-    void out(ostream& o, const ParseSource& ps, int indent = 0);
+    ParseCapture(const std::string& tag_, unsigned s_, unsigned e_);
+    ParseCapture(const std::string& tag_, unsigned s_, unsigned e_, std::list<ParseCapture>& env_);
+    void out(std::ostream& o, const ParseSource& ps, int indent = 0);
 };
 
 class ParseEnv {
-    list<ParseCapture> env;
+    std::list<ParseCapture> env;
 
 public:
-    bool empty() {
-        return env.empty();
-    }
-
-    void add(const string& tag, unsigned s, unsigned e) {
-        env.push_front(ParseCapture(tag, s, e));
-    }
-
-    void add(const string& tag, unsigned s, unsigned e, ParseEnv& en) {
-        env.push_front(ParseCapture(tag, s, e, en.env));
-    }
-
-    void add(ParseEnv& pe) {
-        env.splice(env.begin(), pe.env);
-    }
-
-    void out(ostream& o, const ParseSource& ps, int indent = 0) {
-        for (list<ParseCapture>::iterator it=env.begin(); it!=env.end(); ++it) {
-            it->out(o, ps, indent); o << "\n";
-        }
-    }
+    bool empty();
+    void add(const std::string& tag, unsigned s, unsigned e);
+    void add(const std::string& tag, unsigned s, unsigned e, ParseEnv& en);
+    void add(ParseEnv& pe);
+    void out(std::ostream& o, const ParseSource& ps, int indent = 0);
 };
 
-ParseCapture::ParseCapture(const string& tag_, unsigned s_, unsigned e_) :
+class Parser {
+    bool capture;
+    std::string captureTag;
+
+    virtual bool parse(ParseSource& in, ParseEnv& env) const = 0;
+    virtual const std::string& name() const = 0;
+
+protected:
+    Parser();
+    virtual ~Parser();
+
+public:
+    bool doParse(ParseSource& in, ParseEnv& env) const;
+    Parser& Capture(const std::string& tag);
+};
+
+inline ParseSource::ParseSource(const std::string& s) :
+	input(s),
+	pos(0)
+{}
+
+inline char ParseSource::operator*() const {
+	return input[pos];
+}
+
+inline void ParseSource::operator++() {
+	++pos;
+}
+
+inline void ParseSource::operator+=(int i) {
+	pos += i;
+}
+
+inline bool ParseSource::match(const std::string& s) const {
+	if (atEnd()) return false;
+	return input.compare(pos, s.size(), s)==0;
+}
+
+inline std::string ParseSource::substr(int s, int e) const {
+	return input.substr(s, e-s);
+}
+
+inline bool ParseSource::atEnd() const {
+	return pos >= input.size();
+}
+
+inline unsigned ParseSource::getPos() const {
+	return pos;
+}
+
+inline void ParseSource::setPos(int p) {
+	pos = p;
+}
+
+inline bool ParseEnv::empty() {
+	return env.empty();
+}
+
+inline void ParseEnv::add(const std::string& tag, unsigned s, unsigned e) {
+	env.push_front(ParseCapture(tag, s, e));
+}
+
+inline void ParseEnv::add(const std::string& tag, unsigned s, unsigned e, ParseEnv& en) {
+	env.push_front(ParseCapture(tag, s, e, en.env));
+}
+
+inline void ParseEnv::add(ParseEnv& pe) {
+	env.splice(env.begin(), pe.env);
+}
+
+inline ParseCapture::ParseCapture(const std::string& tag_, unsigned s_, unsigned e_) :
     tag(tag_),
     s(s_),
     e(e_)
 {}
 
-ParseCapture::ParseCapture(const string& tag_, unsigned s_, unsigned e_, list<ParseCapture>& env_) :
+inline ParseCapture::ParseCapture(const std::string& tag_, unsigned s_, unsigned e_, std::list<ParseCapture>& env_) :
     tag(tag_),
     s(s_),
     e(e_)
@@ -120,136 +130,84 @@ ParseCapture::ParseCapture(const string& tag_, unsigned s_, unsigned e_, list<Pa
     subEnv.swap(env_);
 }
 
-void ParseCapture::out(ostream& o, const ParseSource& ps, int indent) {
-    o
-        << string(indent, ' ') << "[" << tag << ": " 
-        << ps.substr(s, e) << "(" << s << "," << e << ")";
-    if (!subEnv.empty()) {
-        o << "\n";
-        for (list<ParseCapture>::iterator it=subEnv.begin(); it!=subEnv.end(); ++it) {
-            it->out(o, ps, indent+1); o << "\n";
-        }
-        o << string(indent, ' ') << "]";
-    } else {
-        o << "]";
-    }
+inline Parser::Parser() :
+    capture(false) {
 }
 
-class Parser {
-    bool capture;
-    string captureTag;
+inline Parser::~Parser(){
+}
 
-    virtual bool parse(ParseSource& in, ParseEnv& env) const = 0;
-    virtual const string& name() const = 0;
-
-protected:
-    Parser() :
-        capture(false)
-    {}
-    virtual ~Parser() {};
-
-public:
-    bool doParse(ParseSource& in, ParseEnv& env) const {
-        unsigned s =in.getPos();
-        ParseEnv en;
-        bool r = parse(in, en);
-        unsigned e =in.getPos();
-        if (r) {
-            // Only add the parsed environment if parse succeeded
-            if (capture) {
-                if (en.empty()) {
-                    env.add(captureTag, s, e);
-                } else {
-                    env.add(captureTag, s, e, en);
-                }
-            } else {
-                env.add(en);
-            }
-        }
-        return r;
-    }
-
-    Parser& Capture(const string& tag) {
-        capture = true;
-        captureTag = tag;
-        return *this;
-    }
-};
+inline Parser& Parser::Capture(const std::string& tag) {
+    capture = true;
+    captureTag = tag;
+    return *this;
+}
 
 class Null : public Parser {
+    static const std::string id;
 public:
     Null()
     {}
 
-    bool parse(ParseSource&, ParseEnv&) const {
-      return true;
-    }
-
-    static const string id;
-    const string& name() const {
+    bool parse(ParseSource& in, ParseEnv& env) const;
+    const std::string& name() const {
         return id;
     }
 };
 
 class Fail : public Parser {
+    static const std::string id;
 public:
     Fail()
     {}
 
-    bool parse(ParseSource&, ParseEnv&) const {
-      return false;
-    }
-
-    static const string id;
-    const string& name() const {
+    bool parse(ParseSource& in, ParseEnv& env) const;
+    const std::string& name() const {
         return id;
     }
 };
 
 class End : public Parser {
+    static const std::string id;
 public:
     End()
     {}
 
-    bool parse(ParseSource& in, ParseEnv&) const {
-      return in.atEnd();
-    }
-
-    static const string id;
-    const string& name() const {
+    bool parse(ParseSource& in, ParseEnv& env) const;
+    const std::string& name() const {
         return id;
     }
 };
 
-static Null null;
-static Fail fail;
-static End end;
+// Only ever need one of these
+
+extern Null null;
+extern Fail fail;
+extern End end;
 
 class Literal : public Parser {
-    const string s;
+    static const std::string id;
+
+    const std::string s;
 
 public:
     Literal(char c) :
         s(1, c)
     {}
 
-    Literal(const string& s_) :
+    Literal(const std::string& s_) :
         s(s_)
     {}
 
-    bool parse(ParseSource& in, ParseEnv&) const {
-      bool r = in.match(s);
-      in += s.size();
-      return r;
-    }
-
-    static const string id;
-    const string& name() const {
+    bool parse(ParseSource& in, ParseEnv& env) const;
+    const std::string& name() const {
         return id;
     }
 };
 
 class And : public Parser {
+    static const std::string id;
+
     const Parser& p1;
     const Parser& p2;
     const Parser& p3;
@@ -273,23 +231,15 @@ public:
         p6(p6_)
     {}
 
-    bool parse(ParseSource& in, ParseEnv& env) const {
-        return
-            p1.doParse(in, env) &&
-            p2.doParse(in, env) &&
-            p3.doParse(in, env) &&
-            p4.doParse(in, env) &&
-            p5.doParse(in, env) &&
-            p6.doParse(in, env);
-    }
-
-    static const string id;
-    const string& name() const {
+    bool parse(ParseSource& in, ParseEnv& env) const;
+    const std::string& name() const {
         return id;
     }
 };
 
 class Or : public Parser {
+    static const std::string id;
+
     const Parser& p1;
     const Parser& p2;
     const Parser& p3;
@@ -313,29 +263,15 @@ public:
         p6(p6_)
     {}
 
-    bool parse(ParseSource& in, ParseEnv& env) const {
-        int pos = in.getPos();
-        if (p1.doParse(in, env)) return true;
-        in.setPos(pos);
-        if (p2.doParse(in, env)) return true;
-        in.setPos(pos);
-        if (p3.doParse(in, env)) return true;
-        in.setPos(pos);
-        if (p4.doParse(in, env)) return true;
-        in.setPos(pos);
-        if (p5.doParse(in, env)) return true;
-        in.setPos(pos);
-        if (p6.doParse(in, env)) return true;
-        return false;
-    }
-
-    static const string id;
-    const string& name() const {
+    bool parse(ParseSource& in, ParseEnv& env) const;
+    const std::string& name() const {
         return id;
     }
 };
 
 class Optional : public Parser {
+    static const std::string id;
+
     const Parser& p;
 
 public:
@@ -343,24 +279,19 @@ public:
         p(p_)
     {}
 
-    bool parse(ParseSource& in, ParseEnv& env) const {
-        int pos = in.getPos();
-        if (p.doParse(in, env)) return true;
-        in.setPos(pos);
-        return true;
-    }
-
-    static const string id;
-    const string& name() const {
+    bool parse(ParseSource& in, ParseEnv& env) const;
+    const std::string& name() const {
         return id;
     }
 };
 
 class Any : public Parser {
-    const string cs;
+    static const std::string id;
+
+    const std::string cs;
 
 public:
-    Any(const string& cs_) :
+    Any(const std::string& cs_) :
         cs(cs_)
     {}
 
@@ -376,90 +307,55 @@ public:
         cs(a1.cs+a2.cs+a3.cs+a4.cs)
     {}
 
-    bool parse(ParseSource& in, ParseEnv&) const {
-        bool r = cs.find(*in) != string::npos;
-        ++in;
-        return r;
-    }
-
-    static const string id;
-    const string& name() const {
+    bool parse(ParseSource& in, ParseEnv& env) const;
+    const std::string& name() const {
         return id;
     }
 };
 
 class None : public Parser {
-    const string cs;
+    static const std::string id;
+
+    const std::string cs;
 
 public:
-    None(const string& cs_) :
+    None(const std::string& cs_) :
         cs(cs_)
     {}
 
-    bool parse(ParseSource& in, ParseEnv&) const {
-        bool r = cs.find(*in) == string::npos;
-        ++in;
-        return r;
-    }
-
-    static const string id;
-    const string& name() const {
+    bool parse(ParseSource& in, ParseEnv& env) const;
+    const std::string& name() const {
         return id;
     }
 };
 
 class Repeat : public Parser {
+    static const std::string id;
+
     const Parser& p;
     const int min;
     const int max;
 
 public:
-    Repeat(const Parser& p_, int min_, int max_ = numeric_limits<int>::max()) :
+    Repeat(const Parser& p_, int min_, int max_ = std::numeric_limits<int>::max()) :
         p(p_),
         min(min_),
         max(max_)
     {}
 
-    bool parse(ParseSource& in, ParseEnv& env) const {
-        int pos = in.getPos();
-        int count = 0;
-        bool r;
-        while ( (r=p.doParse(in, env)) ) {
-            ++count;
-            if (in.atEnd()) break;
-            pos = in.getPos();
-        }
-        // Rewind to before the failed match (if there was one)
-        if (!r) in.setPos(pos);
-
-        bool s = count >= min && count <= max;
-        return s;
-    }
-
-    static const string id;
-    const string& name() const {
+    bool parse(ParseSource& in, ParseEnv& env) const;
+    const std::string& name() const {
         return id;
     }
 };
 
-const string Null::id("Null");
-const string Fail::id("Fail");
-const string End::id("End");
-const string Literal::id("Literal");
-const string And::id("And");
-const string Or::id("Or");
-const string Optional::id("Optional");
-const string Any::id("Any");
-const string None::id("None");
-const string Repeat::id("Repeat");
-
 // Useful character classes
 
-Any alpha("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
-Any digit("0123456789");
-Or  alphanum(alpha, digit);
-Any punct(".,!?:;'\"@&-/");
-Any ws(" \t\n");
+extern Any alpha;
+extern Any digit;
+extern Any alphanum;
+extern Any punct;
+extern Any ws;
 
 #endif // Parser_h
 
