@@ -62,7 +62,8 @@ protected:
 
 public:
     const std::string& type();
-    void doPrint(std::ostream& o, std::set<Parser const* >& notParsed, bool topLevel = false) const;
+    void doPrint(std::ostream& o) const;
+    void doPrint(std::ostream& o, std::set< const Parser* >& notParsed) const;
     bool doParse(ParseSource& in, ParseEnv& env) const;
     Parser& Capture(const std::string& tag);
     Parser& Name(const std::string& name);

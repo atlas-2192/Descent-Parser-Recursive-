@@ -2,6 +2,7 @@
 
 using std::ostream;
 using std::list;
+using std::set;
 using std::string;
 using std::numeric_limits;
 
@@ -26,15 +27,26 @@ void ParseCapture::out(ostream& o, const ParseSource& ps, int indent) {
     }
 }
 
-void Parser::doPrint(ostream& o, std::set< Parser const* >& notParsed, bool topLevel) const {
-    if (!name.empty()) {
-        if (topLevel) {
-            o << name << "::=";
-            print(o, notParsed);
-        } else {
-            o << name;
-            notParsed.insert(this);
+void Parser::doPrint(ostream& o) const {
+    set<Parser const*> toParse;
+    o << name << "::=";
+    print(o, toParse);
+    o << "\n";
+    while (!toParse.empty()) {
+        set<Parser const*> temp;
+        for (set<Parser const*>::iterator i = toParse.begin(); i!=toParse.end(); ++i) {
+            o << (*i)->name << "::=";
+            (*i)->print(o, temp);
+            o << "\n";
         }
+        toParse.swap(temp);
+    }
+}
+
+void Parser::doPrint(ostream& o, std::set< Parser const* >& notParsed) const {
+    if (!name.empty()) {
+        o << name;
+        notParsed.insert(this);
     } else {
         print(o, notParsed);
     }
