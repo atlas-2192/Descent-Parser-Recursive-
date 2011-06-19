@@ -111,15 +111,15 @@ inline bool ParseEnv::empty() {
 }
 
 inline void ParseEnv::add(const std::string& tag, unsigned s, unsigned e) {
-	env.push_front(ParseCapture(tag, s, e));
+	env.push_back(ParseCapture(tag, s, e));
 }
 
 inline void ParseEnv::add(const std::string& tag, unsigned s, unsigned e, ParseEnv& en) {
-	env.push_front(ParseCapture(tag, s, e, en.env));
+	env.push_back(ParseCapture(tag, s, e, en.env));
 }
 
 inline void ParseEnv::add(ParseEnv& pe) {
-	env.splice(env.begin(), pe.env);
+	env.splice(env.end(), pe.env);
 }
 
 inline ParseCapture::ParseCapture(const std::string& tag_, unsigned s_, unsigned e_) :
