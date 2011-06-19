@@ -9,6 +9,7 @@ using std::cin;
 using std::boolalpha;
 
 using std::string;
+using std::set;
 
 Any hexdigit("0123456789abcdefABCDEF");
 Any otherhostchars("_-.%~/");
@@ -66,14 +67,27 @@ int main() {
     username.Capture("username").Name("username");
     password.Capture("password").Name("password");
     protocol.Capture("protocol").Name("protocol");
-    rehost.Capture("host").Name("host");
-    host6.Capture("host").Name("host");
+    rehost.Capture("host").Name("rehost");
+    host6.Capture("host").Name("host6");
     port.Capture("port").Name("port");
-    endpoint.Capture("endpoint");
+    endpoint.Capture("endpoint").Name("endpoint");
+    url.Name("url");
+    hostport.Name("hostport");
+    protocolhostport.Name("protocolhostport");
+    protocolhost.Name("protocolhost");
 
-    cout << "Parse: ";
-    url.doPrint(cout);
+    cout << "Parse:\n";
+    set<Parser const*> toParse;
+    url.doPrint(cout, toParse, true);
     cout << "\n";
+    while (!toParse.empty()) {
+        set<Parser const*> temp;
+        for (set<Parser const*>::iterator i = toParse.begin(); i!=toParse.end(); ++i) {
+            (*i)->doPrint(cout, temp, true);
+            cout << "\n";
+        }
+        toParse.swap(temp);
+    }
     cout << boolalpha;
     string i;
     bool r;

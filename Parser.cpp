@@ -26,9 +26,18 @@ void ParseCapture::out(ostream& o, const ParseSource& ps, int indent) {
     }
 }
 
-void Parser::doPrint(ostream& o) const {
-	if (!name.empty()) o << name;
-	else print(o);
+void Parser::doPrint(ostream& o, std::set< Parser const* >& notParsed, bool topLevel) const {
+    if (!name.empty()) {
+        if (topLevel) {
+            o << name << "::=";
+            print(o, notParsed);
+        } else {
+            o << name;
+            notParsed.insert(this);
+        }
+    } else {
+        print(o, notParsed);
+    }
 }
 
 bool Parser::doParse(ParseSource& in, ParseEnv& env) const {
@@ -141,73 +150,74 @@ bool Repeat::parse(ParseSource& in, ParseEnv& env) const {
     return s;
 }
 
-void Null::print(ostream& o) const {
+void Null::print(ostream& o, std::set< Parser const* >& notParsed) const {
 }
 
-void Fail::print(ostream& o) const {
+void Fail::print(ostream& o, std::set< Parser const* >& notParsed) const {
 }
 
-void End::print(ostream& o) const {
+void End::print(ostream& o, std::set< Parser const* >& notParsed) const {
 	o << "$";
 }
 
-void Literal::print(ostream& o) const {
+void Literal::print(ostream& o, std::set< Parser const* >& notParsed) const {
 	o << "\"" << s << "\"";
 }
 
-void And::print(ostream& o) const {
-	p1.doPrint(o);
-	o << " ";
-	p2.doPrint(o);
+void And::print(ostream& o, std::set< Parser const* >& notParsed) const {
+    o << "(";
+    p1.doPrint(o, notParsed);
+    o << " ";
+    p2.doPrint(o, notParsed);
 	if (&p3 != &null) {
 		o << " ";
-	    p3.doPrint(o);
+	    p3.doPrint(o, notParsed);
 	}
 	if (&p4 != &null) {
 		o << " ";
-	    p4.doPrint(o);
+	    p4.doPrint(o, notParsed);
 	}
 	if (&p5 != &null) {
 	    o << " ";
-	    p5.doPrint(o);
+	    p5.doPrint(o, notParsed);
 	}
 	if (&p6 != &null) {
 	    o << " ";
-	    p6.doPrint(o);
-	}
-}
-
-void Or::print(ostream& o) const {
-	o << "(";
-	p1.doPrint(o);
-	o << "|";
-	p2.doPrint(o);
-	if (&p3 != &fail) {
-	    o << "|";
-	    p3.doPrint(o);
-	}
-	if (&p4 != &fail) {
-	    o << "|";
-	    p4.doPrint(o);
-	}
-	if (&p5 != &fail) {
-	    o << "|";
-	    p5.doPrint(o);
-	}
-	if (&p6 != &fail) {
-	    o << "|";
-	    p6.doPrint(o);
+	    p6.doPrint(o, notParsed);
 	}
 	o << ")";
 }
 
-void Optional::print(ostream& o) const {
+void Or::print(ostream& o, std::set< Parser const* >& notParsed) const {
 	o << "(";
-	p.doPrint(o);
-	o << ")?";
+	p1.doPrint(o, notParsed);
+	o << "|";
+	p2.doPrint(o, notParsed);
+	if (&p3 != &fail) {
+	    o << "|";
+        p3.doPrint(o, notParsed);
+	}
+	if (&p4 != &fail) {
+	    o << "|";
+        p4.doPrint(o, notParsed);
+	}
+	if (&p5 != &fail) {
+	    o << "|";
+        p5.doPrint(o, notParsed);
+	}
+	if (&p6 != &fail) {
+	    o << "|";
+        p6.doPrint(o, notParsed);
+	}
+	o << ")";
 }
 
-void Any::print(ostream& o) const {
+void Optional::print(ostream& o, std::set< Parser const* >& notParsed) const {
+    p.doPrint(o, notParsed);
+	o << "?";
+}
+
+void Any::print(ostream& o, std::set< Parser const* >& notParsed) const {
 	if (cs[0] != '^')
 		o << "[" << cs << "]";
 	else
@@ -215,13 +225,15 @@ void Any::print(ostream& o) const {
 
 }
 
-void None::print(ostream& o) const {
+void None::print(ostream& o, std::set< Parser const* >& notParsed) const {
 	o << "[^" << cs << "]";
 }
 
-void Repeat::print(ostream& o) const {
-	p.doPrint(o);
-	if (max == numeric_limits<int>::max()) {
+void Repeat::print(ostream& o, std::set< Parser const* >& notParsed) const {
+    p.doPrint(o, notParsed);
+    if (min == max) {
+        o << "{" << min << "}";
+    } else if (max == numeric_limits<int>::max()) {
 		switch (min) {
 		case 0: o << "*"; break;
 		case 1: o << "+"; break;
