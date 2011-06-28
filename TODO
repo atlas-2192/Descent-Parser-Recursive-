@@ -1,3 +1,7 @@
+Write Readme
+
+Decide which License to use
+
 It would be nice to use ABNF (http://tools.ietf.org/html/rfc5234) as a source form
 for the parser syntax.
 
