@@ -233,16 +233,37 @@ void Optional::print(ostream& o, std::set< Parser const* >& notParsed) const {
 	o << "?";
 }
 
+namespace {
+    // Printable representations for control characters
+    const char* p[32] = {
+        "\\x00", "\\x01", "\\x02", "\\x03", "\\x04", "\\x05", "\\x06", "\a",
+        "\\a",   "\\t",   "\\n",   "\\v",   "\\f",   "\\r",   "\\x0e", "\\x0f",
+        "\\x10", "\\x11", "\\x12", "\\x13", "\\x14", "\\x15", "\\x16", "\\x17",
+        "\\x18", "\\x19", "\\x1a", "\\x1b", "\\x1c", "\\x1d", "\\x1e", "\\x1f",
+    };
+
+    // Make all characters printable
+    void quotedprint(ostream& o, const string& s) {
+        for (unsigned i = 0; i < s.size(); ++i) {
+            if (s[i] == '\\') o << "\\";
+            else if (s[i] < 32) o << p[(unsigned char)s[i]];
+            else o << s[i];
+        }
+    }
+}
 void Any::print(ostream& o, std::set< Parser const* >& notParsed) const {
 	if (cs[0] != '^')
-		o << "[" << cs << "]";
+		o << "[";
 	else
-		o << "[\\" << cs << "]";
-
+		o << "[\\";
+    quotedprint(o, cs);
+    o << "]";
 }
 
 void None::print(ostream& o, std::set< Parser const* >& notParsed) const {
-	o << "[^" << cs << "]";
+	o << "[^";
+	quotedprint(o, cs);
+	o << "]";
 }
 
 void Repeat::print(ostream& o, std::set< Parser const* >& notParsed) const {
