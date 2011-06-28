@@ -31,14 +31,14 @@ void Parser::doPrint(ostream& o) const {
     set<Parser const*> printed;
     set<Parser const*> toParse;
     printed.insert(this);
-    o << name << "::=";
+    o << name << "=";
     print(o, toParse);
     o << "\n";
     while (!toParse.empty()) {
         set<Parser const*> leftover;
         for (set<Parser const*>::iterator i = toParse.begin(); i!=toParse.end(); ++i) {
             if (printed.insert(*i).second) {
-                o << (*i)->name << "::=";
+                o << (*i)->name << "=";
                 (*i)->print(o, leftover);
                 o << "\n";
             }
