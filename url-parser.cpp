@@ -79,7 +79,7 @@ int main() {
     url.doPrint(cout);
     cout << boolalpha;
     string i;
-    bool r;
+    bool r = true;
     for (getline(cin, i); !!cin; getline(cin, i)) {
         ParseSource ps(i);
         ParseEnv env;

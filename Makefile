@@ -1,4 +1,4 @@
-CXXFLAGS=-g -O0 -Wall -Werror
+CXXFLAGS=-g -Os -Wall -Werror -pipe
 LDFLAGS=-lstdc++
 
 all: url-parser config-parser
