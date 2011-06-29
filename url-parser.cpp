@@ -10,9 +10,8 @@ using std::boolalpha;
 
 using std::string;
 
-Any hexdigit("0123456789abcdefABCDEF");
 Any otherhostchars("_-.%~/");
-Any hostchars(alpha, digit, otherhostchars);
+Or hostchars(alphanum, otherhostchars);
 None idchars("/:@ \t\n");
 Any litip6chars("0123456789abcdefABCDEF.:");
 

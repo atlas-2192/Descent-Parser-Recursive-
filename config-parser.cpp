@@ -11,14 +11,14 @@ using std::boolalpha;
 using std::string;
 
 Any otherhostchars("_-.%~/");
-Any hostchars(alpha, digit, otherhostchars);
+Or hostchars(alpha, digit, otherhostchars);
 None idchars("/:@ \t\n");
 Literal osbrace('[');
 Literal csbrace(']');
 Literal equals("=");
 
 Optional ows(ws);
-Any identifier(hostchars); // Fix this definition
+Or identifier(hostchars); // Fix this definition
 And header(osbrace, identifier, csbrace, ows);
 And definition(identifier, ows, equals, ows, identifier);
 And definitionlistel(ws, definition);

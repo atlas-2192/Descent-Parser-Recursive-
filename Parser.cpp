@@ -283,11 +283,19 @@ void Repeat::print(ostream& o, std::set< Parser const* >& notParsed) const {
 
 // Useful character classes
 
-Any alpha("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
-Any digit("0123456789");
-Any alphanum(alpha, digit);
-Any punct(".,!?:;'\"@&-/");
-Any ws(" \t\n");
+Any alpha0("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+Any digit0("0123456789");
+Any alphanum0(alpha0, digit0);
+Any hexdigit0(digit0, Any("abcdefABCDEF")); // Using this temporary is ok
+Any punct0(".,!?:;'\"@&-/");
+Any ws0(" \t\n");
+
+Parser& alpha = alpha0.Name("alpha");
+Parser& digit = digit0.Name("digit");
+Parser& alphanum = alphanum0.Name("alphanum");
+Parser& hexdigit = hexdigit0.Name("hexdigit");
+Parser& punct = punct0.Name("punct");
+Parser& ws = ws0;
 
 // Singleton parsers
 

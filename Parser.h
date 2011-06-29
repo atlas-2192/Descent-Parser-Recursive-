@@ -362,11 +362,12 @@ public:
 
 // Useful character classes
 
-extern Any alpha;
-extern Any digit;
-extern Any alphanum;
-extern Any punct;
-extern Any ws;
+extern Parser& alpha;
+extern Parser& digit;
+extern Parser& alphanum;
+extern Parser& hexdigit;
+extern Parser& punct;
+extern Parser& ws;
 
 #endif // Parser_h
 
