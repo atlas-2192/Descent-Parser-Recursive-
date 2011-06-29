@@ -39,7 +39,8 @@ int main() {
         ParseSource ps(i);
         ParseEnv env;
         r = configfile.doParse(ps, env);
-        cout << r << "\n";
+        cout << i << ": " << r << "\n";
+        cout << "Captures:\n";
         env.out(cout, ps);
     }
     return !r;
